@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 
 namespace OpdrachtConsole
 {
@@ -68,6 +69,80 @@ namespace OpdrachtConsole
 
         }
 
+        public static void Oplossing2(string fileName, string colA, string colB, string message)
+        {
+            decimal smallestNumber = 0;
+            int col1=0;
+            int col2=0;
+            bool firstValue = true;
+            bool colName = false;
+            List<DataTemp> lstTemp = new List<DataTemp>();
+            foreach (string line in File.ReadLines(fileName))
+            {
+                if (line != string.Empty)
+                {
+                    var x = StringSplit(line);
+                    if (x != null && x.Length > 3)     // remove streep
+                    {
+                        if (!colName)
+                        {   // Search column name
+                            for (int i = 0; i <= x.Length - 1; i++)
+                            {
+                                if (x[i] == colA)
+                                    col1 = i;
+                                if (x[i] == colB)
+                                    col2 = i;
+                                colName = true;
+                            }
+                        }
+                        else
+                        {
+                            DataTemp df = new DataTemp();
+                            df.Tag = x[0].Trim();
 
+                            df.ColumnA = x[col1].Trim().Contains('*') ? decimal.Parse(x[col1].Substring(0, x[col1].Length - 1).Trim()) : decimal.Parse(x[col1].Trim());
+                            df.ColumnB = x[col2].Trim().Contains('*') ? decimal.Parse(x[col2].Substring(0, x[col2].Length - 1).Trim()) : decimal.Parse(x[col2].Trim());
+
+                            decimal curTemp = Math.Abs(df.ColumnA - df.ColumnB);
+                            if (firstValue)
+                            {
+                                smallestNumber = curTemp;
+                                firstValue = false;
+                            }
+
+                            if (smallestNumber > curTemp)
+                            {
+                                smallestNumber = curTemp;
+                            }
+                            lstTemp.Add(df);
+                        }
+                    }
+                }
+            }
+            Console.WriteLine(message);
+            foreach (var item in lstTemp)
+            {
+                if (Math.Abs(item.ColumnA - item.ColumnB) == smallestNumber)
+                {
+                    Console.WriteLine(item.Tag + "\n");
+                }
+            }
+
+        }
+
+        private static string[] StringSplit(string inputString)
+        {
+            string[] stringAfterSplit = inputString.Trim().Split(" ", StringSplitOptions.RemoveEmptyEntries);
+            
+            //Remove unnecessary columns
+            List<string> lstArray = stringAfterSplit.ToList<string>();            
+            lstArray.RemoveAll(p => string.Equals(p, "-"));
+            lstArray.RemoveAll(p => p.EndsWith("."));
+            // remove last total record
+            if (lstArray[0] == "mo")
+                return null;
+
+            return lstArray.ToArray();
+        }
     }
 }
